@@ -1,5 +1,6 @@
 # nonebot_plugin_imgsearch 
-Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图
+Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图  
+需要能稳定访问Google等网站的代理  
 ## 一.安装
 ### 1.下载
 将`nonebot_plugin_imgsearch`文件夹放置于 `bot根目录/plugins/` 下  
@@ -12,7 +13,8 @@ nonebot.load_plugins('./plugins/')
 ```
 pip install -r requirements.txt
 ```
-
+需要go-cqhttp 频道支持适配补丁`nonebot-plugin-guild-patch`  
+https://github.com/mnixry/nonebot-plugin-guild-patch
 ## 二.配置  
 ### 1.env中的配置
 ```
