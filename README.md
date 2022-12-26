@@ -2,7 +2,7 @@
 Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图  
 需要能稳定访问Google等网站的代理  
 ## 一.安装
-### 1.下载
+### 1.安装
 ```
 pip install nonebot-plugin-imgexploration
 ```
@@ -38,4 +38,10 @@ nonebot.load_plugin('nonebot_plugin_guild_patch')
 ```
 proxy_port=xxxx  #代理端口号
 saucenao_apikey=xxxxx  #saucenao apikey
+```  
+## 三.使用  
+### 
+```
+/搜图
+/搜图 <图片>
 ```  
