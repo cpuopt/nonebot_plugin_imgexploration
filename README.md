@@ -14,7 +14,15 @@ nonebot.load_plugins('./plugins/')
 pip install -r requirements.txt
 ```
 需要go-cqhttp 频道支持适配补丁`nonebot-plugin-guild-patch`  
-https://github.com/mnixry/nonebot-plugin-guild-patch
+https://github.com/mnixry/nonebot-plugin-guild-patch  
+
+需要字体  
+```
+HarmonyOS_Sans_SC_Regular.ttf  
+HarmonyOS_Sans_SC_Bold.ttf  
+HarmonyOS_Sans_SC_Light.ttf
+```
+https://developer.harmonyos.com/cn/docs/design/des-guides/font-0000001157868583
 ## 二.配置  
 ### 1.env中的配置
 ```
