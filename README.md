@@ -1,9 +1,9 @@
-# nonebot_plugin_imgsearch 
+# nonebot_plugin_imgexploration 
 Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图  
 需要能稳定访问Google等网站的代理  
 ## 一.安装
 ### 1.下载
-将`nonebot_plugin_imgsearch`文件夹放置于 `bot根目录/plugins/` 下  
+将`nonebot_plugin_imgexploration`文件夹放置于 `bot根目录/plugins/` 下  
 然后在bot.py中添加
 ```
 nonebot.load_plugins('./plugins/')

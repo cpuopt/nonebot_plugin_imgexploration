@@ -80,13 +80,10 @@ class Picsearch:
             self.__imgopsUrl = self.__pic_url
             logger.error(e)
 
-    def setFront(self, big_font: str, nomal_font: str, small_font: str, big_size: int, nomal_size: int, small_size: int):
+    def setFront(self, big_size: int, nomal_size: int, small_size: int):
         """
         Parameters
         ----------
-            * big_font : 大号字体样式
-            * nomal_font : 中号字体样式
-            * small_font : 小号字体样式
             * big_size  大号字体字号
             * nomal_size : 中号字体字号
             * small_size : 小号字体字号
