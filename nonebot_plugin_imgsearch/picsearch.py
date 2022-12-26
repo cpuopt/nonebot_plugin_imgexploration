@@ -9,7 +9,6 @@ from io import BytesIO
 from loguru import logger
 import nest_asyncio, PIL
 import nonebot
-
 nest_asyncio.apply()
 '''proxy_port=7890
 saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55"'''
@@ -95,9 +94,9 @@ class Picsearch:
 
         """
         self.__font_b_size = big_size
-        self.__font_b = ImageFont.truetype(f"{self.__py_path}/{big_font}", big_size)
-        self.__font_n = ImageFont.truetype(f"{self.__py_path}/{nomal_font}", nomal_size)
-        self.__font_s = ImageFont.truetype(f"{self.__py_path}/{small_font}", small_size)
+        self.__font_b = ImageFont.truetype("HarmonyOS_Sans_SC_Regular", big_size)
+        self.__font_n = ImageFont.truetype("HarmonyOS_Sans_SC_Bold", nomal_size)
+        self.__font_s = ImageFont.truetype("HarmonyOS_Sans_SC_Light", small_size)
 
     def setProxy(self, proxy):
         """
@@ -435,7 +434,7 @@ class Picsearch:
 
 
 if __name__ == "__main__":
-    aa = Picsearch(pic_url="https://imgops.com/1hr-tempcache/userUploadTempCache_ip172.105.218.60_utc_20221224-085248_FkoHF83aUAA76QQ.jpg")
+    aa = Picsearch(pic_url="https://imgops.com/1hr-tempcache/userUploadTempCache_ip43.206.92.175_utc_20221226-083111_1653569185373.jpg")
     aa.run()
     img = Image.open(aa.getResultDict()["pic"])
     img.show()

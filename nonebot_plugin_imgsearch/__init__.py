@@ -15,7 +15,7 @@ from nonebot.adapters.onebot.v11 import (
 )
 from plugins.nonebot_plugin_guild_patch import GuildMessageEvent
 import os, httpx, json
-from .picsearch_objective import Picsearch
+from .picsearch import Picsearch
 from .rule import PASS_BLACKLIST_MODE, PASS_GUILD
 
 def guild_charg(event:GuildMessageEvent,charg=1):
