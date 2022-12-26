@@ -155,5 +155,3 @@ async def get_num(bot: Bot, event: GuildMessageEvent, state: T_State, nummsg: Me
         await imgsearch.finish(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text(f"你没有发送序号，搜图结束！")))
 
 
-"""@imgsearch.got("pic_type",prompt="你发送的图片具有以下哪些特点呢？\n完整/不完整\n插画/漫画/动画截图/表情包\n")
-async def get_type(bot: Bot,event: GroupMessageEvent, state: T_State):"""

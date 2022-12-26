@@ -10,8 +10,7 @@ from loguru import logger
 import nest_asyncio, PIL
 import nonebot
 nest_asyncio.apply()
-'''proxy_port=7890
-saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55"'''
+
 
 proxy_port = getattr(nonebot.get_driver().config, "proxy_port", int)
 saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", str)
@@ -31,7 +30,7 @@ class Picsearch:
         """
         self.__pic_url = pic_url
         self.__py_path = os.path.dirname(os.path.abspath(__file__))  # 当前py文件所在目录,用于加载字体
-        self.setFront(big_font="HarmonyOS_Sans_SC_Regular.ttf", nomal_font="HarmonyOS_Sans_SC_Bold.ttf", small_font="HarmonyOS_Sans_SC_Light.ttf", big_size=25, nomal_size=20, small_size=15)
+        self.setFront(big_size=25, nomal_size=20, small_size=15)
         self.setProxy(f"http://127.0.0.1:{proxy_port}")
         self.setHeadersCookieApikey(saucenao_apikey=saucenao_apikey, general_header=general_header)
 
