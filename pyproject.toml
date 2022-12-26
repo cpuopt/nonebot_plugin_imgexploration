@@ -10,6 +10,10 @@ packages = [{include = "nonebot_plugin_imgsearch"}]
 python = "^3.10"
 
 
+
+[tool.nonebot]
+plugins = ["nonebot_plugin_guild_patch"]
+plugin_dirs = []
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

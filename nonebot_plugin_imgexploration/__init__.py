@@ -1,6 +1,5 @@
 from nonebot import  on_command
 from nonebot.log import logger
-from nonebot.rule import to_me
 from nonebot.typing import T_State
 from nonebot.params import  Arg, CommandArg
 from nonebot.adapters.onebot.v11 import (
@@ -10,8 +9,7 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     PrivateMessageEvent
 )
-from plugins.nonebot_plugin_guild_patch import GuildMessageEvent
-import json
+from nonebot_plugin_guild_patch import GuildMessageEvent
 from .picsearch import Picsearch
 
 def numspilt(args:str,max:int):
