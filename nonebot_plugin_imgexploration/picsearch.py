@@ -9,20 +9,15 @@ from io import BytesIO
 from loguru import logger
 import nest_asyncio, PIL
 import nonebot
+
 nest_asyncio.apply()
 
 
-proxy_port = getattr(nonebot.get_driver().config, "proxy_port", int)
-saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", str)
 
-general_header = {
-    "sec-ch-ua": '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
-    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
-}
 
 
 class Picsearch:
-    def __init__(self, pic_url: str):
+    def __init__(self, pic_url, proxy_port, saucenao_apikey):
         """
         Parameters
         ----------
@@ -32,6 +27,11 @@ class Picsearch:
         self.__py_path = os.path.dirname(os.path.abspath(__file__))  # 当前py文件所在目录,用于加载字体
         self.setFront(big_size=25, nomal_size=20, small_size=15)
         self.setProxy(f"http://127.0.0.1:{proxy_port}")
+        general_header = {
+            "sec-ch-ua": '"Chromium";v="104", " Not A;Brand";v="99", "Google Chrome";v="104"',
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
+        }
+
         self.setHeadersCookieApikey(saucenao_apikey=saucenao_apikey, general_header=general_header)
 
     def setHeadersCookieApikey(self, saucenao_apikey, general_header):
