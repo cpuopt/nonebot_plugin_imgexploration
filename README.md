@@ -6,13 +6,13 @@ Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图
 ```
 pip install nonebot-plugin-imgexploration
 ```
-然后在bot.py中添加
+然后在bot.py中添加(注意顺序)
 ```
-nonebot.load_plugins('nonebot_plugin_imgexploration')
+nonebot.load_plugin('nonebot_plugin_guild_patch')
+nonebot.load_plugin('nonebot_plugin_imgexploration')
 ```
 或其他任意加载方式
-### 2.依赖  
-在使用pip安装时，依赖已经自动安装
+### 2.依赖  (使用pip安装无需以下步骤)
 ```
 pip install -r requirements.txt
 ```
@@ -23,7 +23,7 @@ pip install nonebot-plugin-guild-patch
 ```
 在bot.py中添加
 ```
-nonebot.load_plugins('nonebot_plugin_guild_patch')
+nonebot.load_plugin('nonebot_plugin_guild_patch')
 ```
 ### 3.需要字体    
 ```
