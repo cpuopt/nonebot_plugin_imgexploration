@@ -1,4 +1,4 @@
-# nonebot_plugin_imgexploration 
+# nonebot_plugin_imgexploration with Rules
 Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图  
 需要能稳定访问Google等网站的代理  
 ## 一.安装
@@ -38,6 +38,19 @@ nonebot.load_plugin('nonebot_plugin_guild_patch')
 ```
 proxy_port=xxxx  #代理端口号
 saucenao_apikey=xxxxx  #saucenao apikey
+group_on=[123456]  #开启搜图的群号
+guild_on=[123456]  #开启搜图的频道号
+sub_channel_on=[123456]  #开启搜图的子频道号
+blacklist=[123456]  #黑名单qq号
+private_on=[123456]  #开启私聊搜图的qq号
+```  
+### 2.charge.json中的配置
+```  
+{
+    "群号":次数,
+    "qq号":次数,
+    "子频道号":次数
+}
 ```  
 ## 三.使用  
 ### 
