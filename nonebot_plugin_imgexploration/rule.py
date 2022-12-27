@@ -1,6 +1,7 @@
+import os
 from nonebot.rule import Rule
 from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent,PrivateMessageEvent
-from plugins.nonebot_plugin_guild_patch import GuildMessageEvent
+from nonebot_plugin_guild_patch import GuildMessageEvent
 from loguru import logger
 import nonebot, json
 
@@ -41,7 +42,7 @@ class GROUP_CHARGE:
     async def __call__(self, bot: Bot, event: GroupMessageEvent) -> bool:
         group = str(getattr(event, "group_id"))
 
-        with open("charge.json", "r") as file:
+        with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
             record = file.read()
         record = json.loads(record)
         try:

@@ -1,3 +1,4 @@
+import os
 from nonebot import on_command
 from nonebot.log import logger
 from nonebot.typing import T_State
@@ -15,8 +16,7 @@ saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", str)
 
 def private_charg(event: PrivateMessageEvent, charg=1):
     user_id = str(getattr(event, "user_id"))
-
-    with open("charge.json", "r") as file:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
         record = file.read()
     record = json.loads(record)
     try:
@@ -26,14 +26,14 @@ def private_charg(event: PrivateMessageEvent, charg=1):
     except (KeyError):
         pass
     record = json.dumps(record)
-    with open("charge.json", "w") as file:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "w") as file:
         file.write(record)
     return True
 
 
 def guild_charg(event: GuildMessageEvent, charg=1):
     sub_channel_id = str(event.channel_id)
-    with open("charge.json", "r") as file:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
         record = file.read()
     record = json.loads(record)
     try:
@@ -43,7 +43,7 @@ def guild_charg(event: GuildMessageEvent, charg=1):
     except (KeyError):
         pass
     record = json.dumps(record)
-    with open("charge.json", "w") as file:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "w") as file:
         file.write(record)
     return True
 
@@ -51,7 +51,7 @@ def guild_charg(event: GuildMessageEvent, charg=1):
 def charge(event):
     group = str(getattr(event, "group_id"))
 
-    with open("charge.json", "r") as file:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
         record = file.read()
     record = json.loads(record)
     try:
@@ -61,7 +61,7 @@ def charge(event):
     except (KeyError):
         pass
     record = json.dumps(record)
-    with open("charge.json", "w") as file:
+    with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "w") as file:
         file.write(record)
     return True
 
@@ -76,7 +76,6 @@ def numspilt(args: str, max: int):
             for i in arg:
                 if i.isnumeric() and 1 <= int(i) <= max:
                     r_li.append(int(i))
-    print(r_li)
     return r_li
 
 
