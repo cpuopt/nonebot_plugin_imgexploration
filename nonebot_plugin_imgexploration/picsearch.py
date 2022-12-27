@@ -8,12 +8,8 @@ import httpx, os, json
 from io import BytesIO
 from loguru import logger
 import nest_asyncio, PIL
-import nonebot
 
 nest_asyncio.apply()
-
-
-
 
 
 class Picsearch:
@@ -22,6 +18,8 @@ class Picsearch:
         Parameters
         ----------
             * pic_url : 图片url
+            * proxy_port : 代理端口
+            * saucenao_apikey : saucenao_apikey
         """
         self.__pic_url = pic_url
         self.__py_path = os.path.dirname(os.path.abspath(__file__))  # 当前py文件所在目录,用于加载字体
