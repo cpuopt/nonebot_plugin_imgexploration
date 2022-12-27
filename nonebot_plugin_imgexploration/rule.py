@@ -1,15 +1,14 @@
 import os
 from nonebot.rule import Rule
-from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent,PrivateMessageEvent
+from nonebot.adapters.onebot.v11 import Bot, GroupMessageEvent, PrivateMessageEvent
 from nonebot_plugin_guild_patch import GuildMessageEvent
 from loguru import logger
 import nonebot, json
 
+
 class PRIVATE_SW:
     async def __call__(self, event: PrivateMessageEvent) -> bool:
         private_on = getattr(nonebot.get_driver().config, "private_on", list)
-        if not private_on:
-            logger.error("配置文件中没有private_on字段,要开启功能必须添加该字段!")
         user = getattr(event, "user_id", int)
         if user in private_on:
             return True
@@ -17,15 +16,9 @@ class PRIVATE_SW:
             return False
 
 
-def PRIVATE_in_SW() -> Rule:
-    """检验消息来源私聊是否开启功能"""
-    return Rule(PRIVATE_SW())
-
 class GROUP_SW:
     async def __call__(self, event: GroupMessageEvent) -> bool:
         group_on = getattr(nonebot.get_driver().config, "group_on", list)
-        if not group_on:
-            logger.error("配置文件中没有group_on字段,要开启功能必须添加该字段!")
         group = getattr(event, "group_id", int)
         if group in group_on:
             return True
@@ -33,48 +26,8 @@ class GROUP_SW:
             return False
 
 
-def GROUP_in_SW() -> Rule:
-    """检验消息来源群组是否开启功能"""
-    return Rule(GROUP_SW())
-
-
-class GROUP_CHARGE:
-    async def __call__(self, bot: Bot, event: GroupMessageEvent) -> bool:
-        group = str(getattr(event, "group_id"))
-
-        with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
-            record = file.read()
-        record = json.loads(record)
-        try:
-            if record[group] > 0:
-                return True
-            else:
-                return False
-        except KeyError as e:
-            logger.error("该群组不在charge.json中,请先到charge.json中设置剩余次数")
-            return False
-
-
-class NOT_IN_BLACK_LIST:
-    async def __call__(self, bot: Bot, event: GroupMessageEvent) -> bool:
-        qq = int(getattr(event, "user_id"))
-        blacklist = getattr(nonebot.get_driver().config, "blacklist", list)
-        if qq not in blacklist:
-            return True
-        else:
-            return False
-
-
-def QQ_not_in_BLACKLIST() -> Rule:
-    return Rule(NOT_IN_BLACK_LIST())
-
-
-def PASS_BLACKLIST_MODE() -> Rule:
-    return Rule(GROUP_SW()) & Rule(NOT_IN_BLACK_LIST()) & Rule(GROUP_CHARGE())
-
-
 class GUILD_SW:
-    async def __call__(self, bot: Bot, event: GuildMessageEvent) -> bool:
+    async def __call__(self, event: GuildMessageEvent) -> bool:
         channel_on = getattr(nonebot.get_driver().config, "channel_on", list)
         sub_channel_on = getattr(nonebot.get_driver().config, "sub_channel_on", list)
         channel_id = event.guild_id
@@ -85,5 +38,71 @@ class GUILD_SW:
             return False
 
 
+class GROUP_CHARGE:
+    async def __call__(self, event: GroupMessageEvent) -> bool:
+        group = str(event.group_id)
+        with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
+            record = file.read()
+        record = json.loads(record)
+        try:
+            if record[group] > 0:
+                return True
+            else:
+                return False
+        except KeyError as e:
+            logger.error("群组不在charge.json中,请先到charge.json中设置剩余次数")
+            return False
+
+
+class GUILD_CHARGE:
+    async def __call__(self, event: GuildMessageEvent) -> bool:
+        sub_channel_id = str(event.channel_id)
+
+        with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
+            record = file.read()
+        record = json.loads(record)
+        try:
+            if record[sub_channel_id] > 0:
+                return True
+            else:
+                return False
+        except KeyError as e:
+            logger.error("子频道号不在charge.json中,请先到charge.json中设置剩余次数")
+            return False
+class PRIVATE_CHARGE:
+    async def __call__(self, event: PrivateMessageEvent) -> bool:
+        user_id = str(event.user_id)
+        with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
+            record = file.read()
+        record = json.loads(record)
+        try:
+            if record[user_id] > 0:
+                return True
+            else:
+                return False
+        except KeyError as e:
+            logger.error("qq号不在charge.json中,请先到charge.json中设置剩余次数")
+            return False
+
+class NOT_IN_BLACK_LIST:
+    async def __call__(self, event: GroupMessageEvent) -> bool:
+        qq = int(getattr(event, "user_id"))
+        blacklist = getattr(nonebot.get_driver().config, "blacklist", list)
+        if qq not in blacklist:
+            return True
+        else:
+            return False
+
+
 def PASS_GUILD() -> Rule:
-    return Rule(GUILD_SW())
+    return Rule(GUILD_SW())& Rule(GUILD_CHARGE())
+
+
+def PASS_GROUP() -> Rule:
+    return Rule(GROUP_SW()) & Rule(NOT_IN_BLACK_LIST()) & Rule(GROUP_CHARGE())
+
+
+def PASS_PRIVATE() -> Rule:
+    """检验消息来源私聊是否开启功能"""
+    return Rule(PRIVATE_SW())& Rule(PRIVATE_CHARGE())
+

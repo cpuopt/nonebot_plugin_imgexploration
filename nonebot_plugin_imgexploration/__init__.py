@@ -7,7 +7,7 @@ from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment, GroupMessa
 from nonebot_plugin_guild_patch import GuildMessageEvent
 import json
 from .picsearch import Picsearch
-from .rule import PASS_BLACKLIST_MODE, PASS_GUILD, PRIVATE_in_SW
+from .rule import PASS_GROUP, PASS_GUILD, PASS_PRIVATE
 import nonebot
 
 proxy_port = getattr(nonebot.get_driver().config, "proxy_port", int)
@@ -48,7 +48,7 @@ def guild_charg(event: GuildMessageEvent, charg=1):
     return True
 
 
-def charge(event):
+def group_charge(event: GroupMessageEvent, charg=1):
     group = str(getattr(event, "group_id"))
 
     with open(f"{os.path.dirname(os.path.abspath(__file__))}/charge.json", "r") as file:
@@ -79,7 +79,7 @@ def numspilt(args: str, max: int):
     return r_li
 
 
-imgexploration = on_command(cmd="搜图", rule=PASS_BLACKLIST_MODE())
+imgexploration = on_command(cmd="搜图", rule=PASS_GROUP())
 
 
 @imgexploration.handle()
@@ -90,17 +90,18 @@ async def cmd_receive(event: GroupMessageEvent, state: T_State, pic: Message = C
 
 @imgexploration.got("Message_pic", prompt="请发送要搜索的图片")
 async def get_pic(bot: Bot, event: GroupMessageEvent, state: T_State, msgpic: Message = Arg("Message_pic")):
-    if msgpic[0].type == "image":
-        pic_url: str = msgpic[0].data["url"]  # 图片链接
-        logger.success(f"获取到图片: {pic_url}")
-        search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
-        await imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text("搜索进行中……")))
-        search.run()
-        result_dict = search.getResultDict()
-        state["result_dict"] = result_dict
-        await imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在60s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6")))
-
-        charge(event)
+    for segment in msgpic:
+        if segment.type == "image":
+            pic_url: str = segment.data["url"]  # 图片链接
+            logger.success(f"获取到图片: {pic_url}")
+            search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
+            await imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text("搜索进行中……")))
+            search.run()
+            result_dict = search.getResultDict()
+            state["result_dict"] = result_dict
+            await imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在60s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6")))
+            group_charge(event)
+            break
 
     else:
         await imgexploration.reject("你发送的不是图片，请以“图片”形式发送！")
@@ -136,17 +137,18 @@ async def cmd_receive(event: GuildMessageEvent, state: T_State, pic: Message = C
 
 @guild_imgexploration.got("Message_pic", prompt="请发送要搜索的图片")
 async def get_pic(bot: Bot, event: GuildMessageEvent, state: T_State, msgpic: Message = Arg("Message_pic")):
-    if msgpic[0].type == "image":
-        pic_url: str = msgpic[0].data["url"]  # 图片链接
-        logger.success(f"获取到图片: {pic_url}")
-        search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
-        await guild_imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text("搜索进行中……")))
-        search.run()
-        result_dict = search.getResultDict()
-        state["result_dict"] = result_dict
-        await guild_imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在60s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6")))
-
-        guild_charg(event, 1)
+    for segment in msgpic:
+        if segment.type == "image":
+            pic_url: str = segment.data["url"]  # 图片链接
+            logger.success(f"获取到图片: {pic_url}")
+            search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
+            await guild_imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text("搜索进行中……")))
+            search.run()
+            result_dict = search.getResultDict()
+            state["result_dict"] = result_dict
+            await guild_imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在60s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6")))
+            guild_charg(event, 1)
+            break
 
     else:
         await guild_imgexploration.reject("你发送的不是图片，请以“图片”形式发送！")
@@ -171,7 +173,7 @@ async def get_num(bot: Bot, event: GuildMessageEvent, state: T_State, nummsg: Me
         await guild_imgexploration.finish(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text(f"你没有发送序号，搜图结束！")))
 
 
-private_imgexploration = on_command(cmd="搜图", rule=PRIVATE_in_SW())
+private_imgexploration = on_command(cmd="搜图", rule=PASS_PRIVATE())
 
 
 @private_imgexploration.handle()
@@ -182,17 +184,18 @@ async def cmd_receive(event: PrivateMessageEvent, state: T_State, pic: Message =
 
 @private_imgexploration.got("Message_pic", prompt="请发送要搜索的图片")
 async def get_pic(bot: Bot, event: PrivateMessageEvent, state: T_State, msgpic: Message = Arg("Message_pic")):
-    if msgpic[0].type == "image":
-        pic_url: str = msgpic[0].data["url"]  # 图片链接
-        logger.success(f"获取到图片: {pic_url}")
-        search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
-        await private_imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text("搜索进行中……")))
-        search.run()
-        result_dict = search.getResultDict()
-        state["result_dict"] = result_dict
-        await private_imgexploration.send(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在60s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6")))
-
-        private_charg(event, 1)
+    for segment in msgpic:
+        if segment.type == "image":
+            pic_url: str = segment.data["url"]  # 图片链接
+            logger.success(f"获取到图片: {pic_url}")
+            search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
+            await private_imgexploration.send(message=Message(MessageSegment.text("搜索进行中……")))
+            search.run()
+            result_dict = search.getResultDict()
+            state["result_dict"] = result_dict
+            await private_imgexploration.send(message=Message(MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在60s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6")))
+            private_charg(event, 1)
+            break
 
     else:
         await private_imgexploration.reject("你发送的不是图片，请以“图片”形式发送！")

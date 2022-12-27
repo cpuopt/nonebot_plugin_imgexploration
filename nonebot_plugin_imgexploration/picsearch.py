@@ -193,9 +193,9 @@ class Picsearch:
         except Exception as e:
             logger.error(e)
 
-    async def __saucenao_build_result(self, result_num=10, minsim=60, max_num=3) -> dict:
+    async def __saucenao_build_result(self, result_num=10, minsim=60, max_num=5) -> dict:
         resList = []
-        logger.success("saucenao searching...")
+        logger.info("saucenao searching...")
         try:
             async with Network(proxies=self.__proxy, timeout=20) as client:
                 saucenao = SauceNAO(client=client, api_key=self.__saucenao_apikey, numres=result_num)
@@ -236,7 +236,7 @@ class Picsearch:
         resList = []
         google_lens_text = ""
         google_search_text = ""
-        logger.success("google searching...")
+        logger.info("google searching...")
         try:
             params = {
                 "hl": "zh-CN",
@@ -312,7 +312,7 @@ class Picsearch:
             * tz_num : 特征搜索获取结果数量
 
         """
-        logger.success("ascii2d searching...")
+        logger.info("ascii2d searching...")
         try:
             async with Network(proxies=self.__proxy, timeout=20) as client:
 
@@ -356,7 +356,7 @@ class Picsearch:
         ---------
             * result_num : 需要的结果数量
         """
-        logger.success("yandex searching...")
+        logger.info("yandex searching...")
         try:
             yandexurl = f"https://yandex.com/images/search"
             data = {
@@ -403,8 +403,7 @@ class Picsearch:
         loop.run_until_complete(task_ascii2d)
         loop.run_until_complete(task_google)
         loop.run_until_complete(task_yandex)
-        self.__result_info = task_saucenao.result() + task_google.result() + task_ascii2d.result() + task_yandex.result()
-
+        self.__result_info = task_saucenao.result() + task_ascii2d.result() + task_google.result() + task_yandex.result()
         result_pic = await self.__draw()
 
         self.__picNinfo = {
