@@ -18,17 +18,17 @@ HarmonyOS_Sans_SC_Regular.ttf
 HarmonyOS_Sans_SC_Bold.ttf  
 HarmonyOS_Sans_SC_Light.ttf
 ```
-https://developer.harmonyos.com/cn/docs/design/des-guides/font-0000001157868583
+https://developer.harmonyos.com/cn/docs/design/des-guides/font-0000001157868583   
+安装到系统字体即可
 ### 3.依赖  (使用pip安装无需以下步骤)
 ```
 pip install -r requirements.txt
 ```
 go-cqhttp 频道支持适配补丁`nonebot-plugin-guild-patch`  
-安装命令
 ```
 pip install nonebot-plugin-guild-patch
 ```
-在bot.py中添加
+在加载本插件前添加
 ```
 nonebot.load_plugin('nonebot_plugin_guild_patch')
 ```
