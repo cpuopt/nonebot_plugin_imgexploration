@@ -12,7 +12,7 @@ import nest_asyncio, PIL
 nest_asyncio.apply()
 
 
-class Picsearch:
+class Imgexploration:
     def __init__(self, pic_url, proxy_port, saucenao_apikey):
         """
         Parameters
@@ -461,7 +461,7 @@ class Picsearch:
 
 if __name__ == "__main__":
 
-    aa = Picsearch(pic_url="https://imgops.com/1hr-tempcache/userUploadTempCache_ip103.178.55.210_utc_20230105-035200_QQ20230105115151.jpg", proxy_port=7890, saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55")
+    aa = Imgexploration(pic_url="https://imgops.com/1hr-tempcache/userUploadTempCache_ip103.178.55.210_utc_20230105-035200_QQ20230105115151.jpg", proxy_port=7890, saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55")
     aa.run()
     img = Image.open(BytesIO(aa.getResultDict()["pic"]))
     img.show()

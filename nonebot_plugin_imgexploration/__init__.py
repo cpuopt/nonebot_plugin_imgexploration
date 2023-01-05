@@ -6,8 +6,14 @@ from nonebot.typing import T_State
 from nonebot.params import Arg, CommandArg
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment, GroupMessageEvent, PrivateMessageEvent
 from nonebot_plugin_guild_patch import GuildMessageEvent
-from .picsearch import Picsearch
+from .imgexploration import Imgexploration
+from nonebot.plugin import PluginMetadata
 
+__plugin_meta__ = PluginMetadata(
+    name = '查找图片出处',
+    description = '通过saucenao、ascii2d、Google、Yandx查询图片出处',
+    usage = '命令:搜图'
+)
 proxy_port = getattr(nonebot.get_driver().config, "proxy_port", int)
 saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", str)
 
@@ -40,7 +46,7 @@ async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent,
         if segment.type == "image":
             pic_url: str = segment.data["url"]  # 图片链接
             logger.success(f"获取到图片: {pic_url}")
-            search = Picsearch(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
+            search = Imgexploration(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
             await imgexploration.send(message=Message(MessageSegment.text("搜索进行中……")), reply_message=True)
             search.run()
             result_dict = search.getResultDict()
