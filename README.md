@@ -38,6 +38,7 @@ nonebot.load_plugin('nonebot_plugin_guild_patch')
 ```
 proxy_port=xxxx  #代理端口号
 saucenao_apikey=xxxxx  #saucenao apikey
+SESSION_EXPIRE_TIMEOUT=180 #等待用户回复的超时时间(可选) https://v2.nonebot.dev/docs/api/config#Config-session_expire_timeout
 ```  
 ## 三.使用  
 ### 
