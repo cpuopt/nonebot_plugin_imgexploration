@@ -8,12 +8,8 @@ import httpx, os, json
 from io import BytesIO
 from loguru import logger
 import nest_asyncio, PIL
-import nonebot
 
 nest_asyncio.apply()
-
-
-
 
 
 class Picsearch:
@@ -22,6 +18,8 @@ class Picsearch:
         Parameters
         ----------
             * pic_url : 图片url
+            * proxy_port : 代理端口
+            * saucenao_apikey : saucenao_apikey
         """
         self.__pic_url = pic_url
         self.__py_path = os.path.dirname(os.path.abspath(__file__))  # 当前py文件所在目录,用于加载字体
@@ -45,7 +43,7 @@ class Picsearch:
 
     async def __getImgbytes(self):
         try:
-            async with httpx.AsyncClient(proxies="http://127.0.0.1:7890") as client:
+            async with httpx.AsyncClient(proxies=self.__proxy) as client:
                 self.__pic_bytes = (await client.get(url=self.__pic_url, timeout=10)).content
             img = Image.open(BytesIO(self.__pic_bytes))
             img = img.convert("RGB")
@@ -103,7 +101,17 @@ class Picsearch:
         """
         self.__proxy = proxy
 
-    async def __draw(self):
+    @staticmethod
+    def ImageBatchDownload(urls: list, client: httpx.AsyncClient) -> list[bytes]:
+
+        loop = asyncio.get_event_loop()
+        tasks = [loop.create_task(client.get(url)) for url in urls]
+        for task in tasks:
+            loop.run_until_complete(task)
+        result = [task.result().content for task in tasks]
+        return result
+
+    async def __draw(self) -> bytes:
         try:
             font_size = self.__font_b_size
             font = self.__font_b
@@ -138,7 +146,7 @@ class Picsearch:
                 if "thumbnail_bytes" in single:
                     thumbnail = single["thumbnail_bytes"]
                     try:
-                        thumbnail = Image.open(fp=BytesIO(thumbnail))
+                        thumbnail = Image.open(fp=BytesIO(thumbnail)).convert("RGB")
                     except (PIL.UnidentifiedImageError):
                         thumbnail = Image.new(mode="RGB", size=(200, 200), color=(255, 255, 255))
 
@@ -191,37 +199,42 @@ class Picsearch:
 
             save = BytesIO()
             img.save(save, format="JPEG", quality=95)
-            return save
+            return save.getvalue()
         except Exception as e:
             logger.error(e)
 
-    async def __saucenao_build_result(self, result_num=10, minsim=60, max_num=3) -> dict:
+    async def __saucenao_build_result(self, result_num=10, minsim=60, max_num=5) -> dict:
         resList = []
-        logger.success("saucenao searching...")
+        logger.info("saucenao searching...")
         try:
             async with Network(proxies=self.__proxy, timeout=20) as client:
                 saucenao = SauceNAO(client=client, api_key=self.__saucenao_apikey, numres=result_num)
                 saucenao_result = await saucenao.search(url=self.__imgopsUrl)
 
             async with httpx.AsyncClient(proxies=self.__proxy) as client:
-
+                thumbnail_urls = []
                 for single in saucenao_result.raw:
                     if single.similarity < minsim or single.url == "" or single.thumbnail == "":
                         continue
-                    thumbnail_bytes = (await client.get(url=single.thumbnail)).content
+                    thumbnail_urls.append(single.thumbnail)
+                thumbnail_bytes = self.ImageBatchDownload(thumbnail_urls, client)
+                i = 0
+                for single in saucenao_result.raw:
+                    if single.similarity < minsim or single.url == "" or single.thumbnail == "":
+                        continue
                     sin_di = {
                         "title": single.title,  # 标题
                         "thumbnail": single.thumbnail,  # 缩略图url
                         "url": single.url,
                         "similarity": single.similarity,
                         "source": "saucenao",
-                        "thumbnail_bytes": thumbnail_bytes,
+                        "thumbnail_bytes": thumbnail_bytes[i],
                     }
-
+                    i += 1
                     resList.append(sin_di)
             return resList
         except IndexError as e:
-            logger.error(e)
+            logger.error(str(e))
         finally:
             logger.success(f"saucenao result:{len(resList)}")
             return resList
@@ -238,7 +251,7 @@ class Picsearch:
         resList = []
         google_lens_text = ""
         google_search_text = ""
-        logger.success("google searching...")
+        logger.info("google searching...")
         try:
             params = {
                 "hl": "zh-CN",
@@ -314,18 +327,31 @@ class Picsearch:
             * tz_num : 特征搜索获取结果数量
 
         """
-        logger.success("ascii2d searching...")
+        logger.info("ascii2d searching...")
         try:
             async with Network(proxies=self.__proxy, timeout=20) as client:
 
                 ascii2d_sh = Ascii2D(client=client, bovw=False)
-                ascii2d_sh_result = await ascii2d_sh.search(url=self.__imgopsUrl)
+
+                #ascii2d_sh_result = await ascii2d_sh.search(url=self.__imgopsUrl)
 
                 ascii2d_tz = Ascii2D(client=client, bovw=True)
-                ascii2d_tz_result = await ascii2d_tz.search(url=self.__imgopsUrl)
+                #ascii2d_tz_result = await ascii2d_tz.search(url=self.__imgopsUrl)
+
+                loop = asyncio.get_event_loop()
+                tasks = [
+                    loop.create_task(ascii2d_sh.search(url=self.__imgopsUrl)),
+                    loop.create_task(ascii2d_tz.search(url=self.__imgopsUrl)),
+                ]
+                for task in tasks:
+                    loop.run_until_complete(task)
+                ascii2d_sh_result=tasks[0].result()
+                ascii2d_tz_result=tasks[1].result()
+                    
 
             result_li = []
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(proxies=self.__proxy) as client:
+                thumbnail_urls = []
                 for single in ascii2d_tz_result.raw[0:tz_num] + ascii2d_sh_result.raw[0:sh_num]:
                     external_url_li = self.__ascii2d_get_external_url(single.origin)
                     if not external_url_li and not single.url:
@@ -334,18 +360,19 @@ class Picsearch:
                         url = single.url
                     else:
                         url = external_url_li
-
-                    thumbnail_bytes = (await client.get(url=single.thumbnail, headers=self.__generalHeader, timeout=10)).content
-
                     sin_di = {
                         "title": single.title,
                         "thumbnail": single.thumbnail,
                         "url": url,
                         "source": "ascii2d",
-                        "thumbnail_bytes": thumbnail_bytes,
                     }
-
+                    thumbnail_urls.append(single.thumbnail)
                     result_li.append(sin_di)
+                thumbnail_bytes=self.ImageBatchDownload(thumbnail_urls,client)
+                i=0
+                for single in result_li:
+                    single['thumbnail_bytes']=thumbnail_bytes[i]
+                    i+=1
             logger.success(f"ascii2d result:{len(result_li)}")
             return result_li
         except Exception as e:
@@ -358,7 +385,7 @@ class Picsearch:
         ---------
             * result_num : 需要的结果数量
         """
-        logger.success("yandex searching...")
+        logger.info("yandex searching...")
         try:
             yandexurl = f"https://yandex.com/images/search"
             data = {
@@ -367,14 +394,17 @@ class Picsearch:
                 "url": self.__imgopsUrl,
             }
             result_li = []
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(proxies=self.__proxy) as client:
                 yandexPage = await client.get(url=yandexurl, params=data, headers=self.__generalHeader, timeout=20)
                 yandexHtml = etree.HTML(yandexPage.text)
                 InfoJSON = yandexHtml.xpath('//*[@class="cbir-section cbir-section_name_sites"]/div/@data-state')[0]
                 result_dict = json.loads(InfoJSON)
-
+                thumbnail_urls = []
                 for single in result_dict["sites"][:result_num]:
-                    thumbnail_bytes = (await client.get(url="https:" + single["thumb"]["url"], headers=self.__generalHeader, timeout=10)).content
+                    thumbnail_urls.append("https:" + single["thumb"]["url"])
+                thumbnail_bytes = self.ImageBatchDownload(thumbnail_urls, client)
+                i = 0
+                for single in result_dict["sites"][:result_num]:
                     sin_di = {
                         "source": "Yandex",
                         "title": single["title"],  # 标题
@@ -382,8 +412,9 @@ class Picsearch:
                         "url": single["url"],  # 来源网址
                         "description": single["description"],  # 描述
                         "domain": single["domain"],  # 来源网站域名
-                        "thumbnail_bytes": thumbnail_bytes,
+                        "thumbnail_bytes": thumbnail_bytes[i],
                     }
+                    i += 1
                     result_li.append(sin_di)
             logger.success(f"yandex result:{len(result_li)}")
             return result_li
@@ -405,8 +436,7 @@ class Picsearch:
         loop.run_until_complete(task_ascii2d)
         loop.run_until_complete(task_google)
         loop.run_until_complete(task_yandex)
-        self.__result_info = task_saucenao.result() + task_google.result() + task_ascii2d.result() + task_yandex.result()
-
+        self.__result_info = task_saucenao.result() + task_ascii2d.result() + task_google.result() + task_yandex.result()
         result_pic = await self.__draw()
 
         self.__picNinfo = {
@@ -422,7 +452,7 @@ class Picsearch:
         Returns
         ----------
         {
-            "pic": BytesIO,
+            "pic": bytes,
             "info": list,
         }
         """
@@ -430,8 +460,9 @@ class Picsearch:
 
 
 if __name__ == "__main__":
-    aa = Picsearch(pic_url="https://imgops.com/1hr-tempcache/userUploadTempCache_ip43.206.92.175_utc_20221226-083111_1653569185373.jpg")
+
+    aa = Picsearch(pic_url="https://imgops.com/1hr-tempcache/userUploadTempCache_ip103.178.55.210_utc_20230105-035200_QQ20230105115151.jpg", proxy_port=7890, saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55")
     aa.run()
-    img = Image.open(aa.getResultDict()["pic"])
+    img = Image.open(BytesIO(aa.getResultDict()["pic"]))
     img.show()
     img.save("00.jpg", format="JPEG", quality=100)
