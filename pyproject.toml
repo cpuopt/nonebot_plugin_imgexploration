@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-imgexploration"
-version = "0.1.9"
+version = "0.2.1"
 description = "Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图"
 authors = ["cpufan"]
 readme = "README.md"

@@ -1,4 +1,5 @@
 import nonebot
+import httpx
 from typing import Union
 from nonebot import on_command
 from nonebot.log import logger
@@ -42,9 +43,10 @@ async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent,
         if segment.type == "image":
             pic_url: str = segment.data["url"]  # 图片链接
             logger.success(f"获取到图片: {pic_url}")
-            search = Imgexploration(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
-            await imgexploration.send(message=Message(MessageSegment.text("搜索进行中……")), reply_message=True)
-            search.run()
+            async with httpx.AsyncClient(proxies=f"http://127.0.0.1:{proxy_port}") as client:
+                search = Imgexploration(pic_url=pic_url, client=client,proxy=f"http://127.0.0.1:{proxy_port}", saucenao_apikey=saucenao_apikey)
+                await imgexploration.send(message=Message(MessageSegment.text("搜索进行中……")), reply_message=True)
+                await search.doSearch()
             result_dict = search.getResultDict()
             state["result_dict"] = result_dict
             await imgexploration.send(
