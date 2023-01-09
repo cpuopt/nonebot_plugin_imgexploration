@@ -9,11 +9,7 @@ from nonebot_plugin_guild_patch import GuildMessageEvent
 from .imgexploration import Imgexploration
 from nonebot.plugin import PluginMetadata
 
-__plugin_meta__ = PluginMetadata(
-    name = '查找图片出处',
-    description = '通过saucenao、ascii2d、Google、Yandx查询图片出处',
-    usage = '命令:搜图'
-)
+__plugin_meta__ = PluginMetadata(name="查找图片出处", description="通过saucenao、ascii2d、Google、Yandx查询图片出处", usage="command:搜图")
 proxy_port = getattr(nonebot.get_driver().config, "proxy_port", int)
 saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", str)
 
