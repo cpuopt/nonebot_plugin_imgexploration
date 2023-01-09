@@ -48,7 +48,7 @@ async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent,
             logger.success(f"获取到图片: {pic_url}")
             search = Imgexploration(pic_url=pic_url, proxy_port=proxy_port, saucenao_apikey=saucenao_apikey)
             await imgexploration.send(message=Message(MessageSegment.text("搜索进行中……")), reply_message=True)
-            search.run()
+            await search.doSearch()
             result_dict = search.getResultDict()
             state["result_dict"] = result_dict
             await imgexploration.send(

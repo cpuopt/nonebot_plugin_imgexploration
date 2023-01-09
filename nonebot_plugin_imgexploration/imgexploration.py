@@ -4,12 +4,10 @@ import re
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from PicImageSearch import Ascii2D, Network, SauceNAO
 from lxml import etree
-import httpx, os, json
+import httpx, json
 from io import BytesIO
 from loguru import logger
-import nest_asyncio, PIL
-
-nest_asyncio.apply()
+import PIL
 
 
 class Imgexploration:
@@ -22,7 +20,6 @@ class Imgexploration:
             * saucenao_apikey : saucenao_apikey
         """
         self.__pic_url = pic_url
-        self.__py_path = os.path.dirname(os.path.abspath(__file__))  # 当前py文件所在目录,用于加载字体
         self.setFront(big_size=25, nomal_size=20, small_size=15)
         self.setProxy(f"http://127.0.0.1:{proxy_port}")
         general_header = {
@@ -333,10 +330,10 @@ class Imgexploration:
 
                 ascii2d_sh = Ascii2D(client=client, bovw=False)
 
-                #ascii2d_sh_result = await ascii2d_sh.search(url=self.__imgopsUrl)
+                # ascii2d_sh_result = await ascii2d_sh.search(url=self.__imgopsUrl)
 
                 ascii2d_tz = Ascii2D(client=client, bovw=True)
-                #ascii2d_tz_result = await ascii2d_tz.search(url=self.__imgopsUrl)
+                # ascii2d_tz_result = await ascii2d_tz.search(url=self.__imgopsUrl)
 
                 loop = asyncio.get_event_loop()
                 tasks = [
@@ -345,9 +342,8 @@ class Imgexploration:
                 ]
                 for task in tasks:
                     loop.run_until_complete(task)
-                ascii2d_sh_result=tasks[0].result()
-                ascii2d_tz_result=tasks[1].result()
-                    
+                ascii2d_sh_result = tasks[0].result()
+                ascii2d_tz_result = tasks[1].result()
 
             result_li = []
             async with httpx.AsyncClient(proxies=self.__proxy) as client:
@@ -368,11 +364,11 @@ class Imgexploration:
                     }
                     thumbnail_urls.append(single.thumbnail)
                     result_li.append(sin_di)
-                thumbnail_bytes=self.ImageBatchDownload(thumbnail_urls,client)
-                i=0
+                thumbnail_bytes = self.ImageBatchDownload(thumbnail_urls, client)
+                i = 0
                 for single in result_li:
-                    single['thumbnail_bytes']=thumbnail_bytes[i]
-                    i+=1
+                    single["thumbnail_bytes"] = thumbnail_bytes[i]
+                    i += 1
             logger.success(f"ascii2d result:{len(result_li)}")
             return result_li
         except Exception as e:
