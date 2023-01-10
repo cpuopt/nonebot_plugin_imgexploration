@@ -1,5 +1,13 @@
+<div align="center">
+
 # nonebot_plugin_imgexploration 
-Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图  
+
+_✨ [Nonebot2](https://github.com/nonebot/nonebot2) 插件，Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图  ✨_
+
+
+
+</div> 
+
 需要能稳定访问Google等网站的代理  
 ## 一.**安装**
 ### 1.安装
