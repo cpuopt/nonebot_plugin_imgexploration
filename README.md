@@ -29,7 +29,7 @@ HarmonyOS_Sans_SC_Light.ttf
 ```
 https://developer.harmonyos.com/cn/docs/design/des-guides/font-0000001157868583   
 安装到系统字体即可
-### 3.依赖  (使用pip安装无需以下步骤)
+### 3.依赖  (使用pip安装无需手动安装依赖)
 <details>
 <summary>展开/收起</summary>
 
