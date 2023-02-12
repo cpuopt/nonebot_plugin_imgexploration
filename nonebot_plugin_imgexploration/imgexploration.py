@@ -11,16 +11,14 @@ import PIL
 
 
 class Imgexploration:
-    def __init__(self, pic_url, client: httpx.AsyncClient, proxy, saucenao_apikey):
+    def __init__(self, pic_url, client: httpx.AsyncClient,saucenao_apikey):
         """
         Parameters
         ----------
             * pic_url : 图片url
-            * proxy_port : 代理端口
             * saucenao_apikey : saucenao_apikey
         """
         self.client = client
-        self.__proxy = proxy
         self.__pic_url = pic_url
         self.setFront(big_size=25, nomal_size=20, small_size=15)
 
@@ -193,7 +191,7 @@ class Imgexploration:
         resList = []
         logger.info("saucenao searching...")
         try:
-            async with Network(proxies=self.__proxy, timeout=20) as client:
+            async with Network(timeout=20) as client:
                 saucenao = SauceNAO(client=client, api_key=self.__saucenao_apikey, numres=result_num)
                 saucenao_result = await saucenao.search(url=self.__imgopsUrl)
 
@@ -312,7 +310,7 @@ class Imgexploration:
         """
         logger.info("ascii2d searching...")
         try:
-            async with Network(proxies=self.__proxy, timeout=20) as client:
+            async with Network(timeout=20) as client:
 
                 ascii2d_sh = Ascii2D(client=client, bovw=False)
 
@@ -331,7 +329,7 @@ class Imgexploration:
                     external_url_li = self.__ascii2d_get_external_url(single.origin)
                     if not external_url_li and not single.url:
                         continue
-                    elif single.url:#
+                    elif single.url:
                         url = single.url
                     else:
                         url = external_url_li
@@ -431,9 +429,9 @@ class Imgexploration:
 if __name__ == "__main__":
 
     async def main():
-        async with httpx.AsyncClient(proxies=f"http://127.0.0.1:{7890}") as client:
+        async with httpx.AsyncClient() as client:
             aa = Imgexploration(
-                pic_url="https://p.inari.site/usr/369/63bbf25c3accb.jpg", client=client, proxy=f"http://127.0.0.1:{7890}", saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55"
+                pic_url="https://p.inari.site/usr/369/63bbf25c3accb.jpg", client=client, saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55"
             )
             await aa.doSearch()
         img = Image.open(BytesIO(aa.getResultDict()["pic"]))

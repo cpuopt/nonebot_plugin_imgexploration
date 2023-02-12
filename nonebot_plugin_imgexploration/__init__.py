@@ -11,7 +11,6 @@ from .imgexploration import Imgexploration
 from nonebot.plugin import PluginMetadata
 
 __plugin_meta__ = PluginMetadata(name="查找图片出处", description="通过saucenao、ascii2d、Google、Yandx查询图片出处", usage="command:搜图")
-proxy_port = getattr(nonebot.get_driver().config, "proxy_port", int)
 saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", str)
 
 
@@ -43,8 +42,8 @@ async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent,
         if segment.type == "image":
             pic_url: str = segment.data["url"]  # 图片链接
             logger.success(f"获取到图片: {pic_url}")
-            async with httpx.AsyncClient(proxies=f"http://127.0.0.1:{proxy_port}") as client:
-                search = Imgexploration(pic_url=pic_url, client=client,proxy=f"http://127.0.0.1:{proxy_port}", saucenao_apikey=saucenao_apikey)
+            async with httpx.AsyncClient() as client:
+                search = Imgexploration(pic_url=pic_url, client=client, saucenao_apikey=saucenao_apikey)
                 await imgexploration.send(message=Message(MessageSegment.text("搜索进行中……")), reply_message=True)
                 await search.doSearch()
             result_dict = search.getResultDict()
