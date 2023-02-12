@@ -331,7 +331,7 @@ class Imgexploration:
                     external_url_li = self.__ascii2d_get_external_url(single.origin)
                     if not external_url_li and not single.url:
                         continue
-                    elif single.url:
+                    elif single.url:#
                         url = single.url
                     else:
                         url = external_url_li
