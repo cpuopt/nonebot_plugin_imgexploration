@@ -311,6 +311,7 @@ class Imgexploration:
 
         """
         logger.info("ascii2d searching...")
+        result_li = []
         try:
             async with Network(proxies=self.__proxy, timeout=20) as client:
 
@@ -324,7 +325,7 @@ class Imgexploration:
                 ascii2d_sh_result = await asyncio.create_task(ascii2d_sh.search(url=self.__imgopsUrl))
                 ascii2d_tz_result = await asyncio.create_task(ascii2d_tz.search(url=self.__imgopsUrl))
 
-                result_li = []
+                
 
                 thumbnail_urls = []
                 for single in ascii2d_tz_result.raw[0:tz_num] + ascii2d_sh_result.raw[0:sh_num]:
