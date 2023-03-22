@@ -50,11 +50,14 @@ nonebot.load_plugin('nonebot_plugin_guild_patch')
 ## 二.**配置**  
 ### 1.env中的配置
 ```
-proxy_port=xxxx  #代理端口号(不使用本地代理可缺省)
+#代理端口号(不使用本地代理可缺省，例如：使用软路由透明代理、程序运行在境外)
+proxy_port=xxxx  
 
-saucenao_apikey=xxxxx  #saucenao apikey 在https://saucenao.com/user.php?page=search-api注册获取
+#saucenao apikey 在https://saucenao.com/user.php?page=search-api注册获取
+saucenao_apikey=xxxxx 
 
-SESSION_EXPIRE_TIMEOUT=180 #等待用户回复的超时时间(可选) https://v2.nonebot.dev/docs/api/config#Config-session_expire_timeout
+#等待用户回复的超时时间(可选) https://v2.nonebot.dev/docs/api/config#Config-session_expire_timeout
+SESSION_EXPIRE_TIMEOUT=180 
 ```  
 ## 三.**使用**  
 ### 
