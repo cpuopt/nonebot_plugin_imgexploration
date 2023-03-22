@@ -9,7 +9,7 @@ _✨ [Nonebot2](https://github.com/nonebot/nonebot2) 插件，Google、Yandx和�
 
 </div> 
 
-需要能稳定访问Google等网站的代理  
+**需要能稳定访问Google等网站的代理**  
 ## 一.**安装**
 ### 1.使用nb-cli安装
 依次执行
