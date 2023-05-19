@@ -1,5 +1,4 @@
 import asyncio
-import base64
 import re
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from PicImageSearch import Ascii2D, Network, SauceNAO
@@ -8,10 +7,11 @@ import httpx, json
 from io import BytesIO
 from loguru import logger
 import PIL
+import urllib
 
 
 class Imgexploration:
-    def __init__(self, pic_url, client: httpx.AsyncClient, proxy, saucenao_apikey):
+    def __init__(self, pic_url, client: httpx.AsyncClient, proxy, saucenao_apikey, google_cookies):
         """
         Parameters
         ----------
@@ -29,9 +29,9 @@ class Imgexploration:
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36",
         }
 
-        self.setHeadersCookieApikey(saucenao_apikey=saucenao_apikey, general_header=general_header)
+        self.setHeadersCookieApikey(saucenao_apikey=saucenao_apikey, general_header=general_header, google_cookies=google_cookies)
 
-    def setHeadersCookieApikey(self, saucenao_apikey, general_header):
+    def setHeadersCookieApikey(self, saucenao_apikey, general_header, google_cookies):
         """
         Args:
         ----------
@@ -39,10 +39,10 @@ class Imgexploration:
         """
         self.__saucenao_apikey = saucenao_apikey
         self.__generalHeader = general_header
+        self.__google_cookies = google_cookies
 
     async def __getImgbytes(self):
         try:
-
             self.__pic_bytes = (await self.client.get(url=self.__pic_url, timeout=10)).content
             img = Image.open(BytesIO(self.__pic_bytes))
             img = img.convert("RGB")
@@ -63,16 +63,17 @@ class Imgexploration:
             files = {"photo": self.__pic_bytes}
             data = {"isAjax": "true"}
             headers = {
-                "sec-ch-ua": '"Not?A_Brand";v="8", "Chromium";v="108", "Google Chrome";v="108"',
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36",
+                "sec-ch-ua": '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"',
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
                 "sec-ch-ua-platform": '"Windows"',
                 "Origin": "https://imgops.com",
-                "Referer": "https://imgops.com/upload",
+                "Referer": "https://imgops.com/",
                 "Accept-Encoding": "gzip, deflate, br",
                 "Accept-Language": "zh-CN,zh;q=0.9",
             }
+            post = await self.client.post("https://imgops.com/store", files=files, data=data, headers=headers, timeout=10)
 
-            self.__imgopsUrl = "https:/" + (await self.client.post("https://imgops.com/store", files=files, data=data, headers=headers, timeout=10)).text
+            self.__imgopsUrl = "https:/" + post.text
         except Exception as e:
             self.__imgopsUrl = self.__pic_url
             logger.error(e)
@@ -93,7 +94,6 @@ class Imgexploration:
 
     @staticmethod
     async def ImageBatchDownload(urls: list, client: httpx.AsyncClient) -> list[bytes]:
-
         tasks = [asyncio.create_task(client.get(url)) for url in urls]
         return [((await task).content) for task in tasks]
 
@@ -126,14 +126,13 @@ class Imgexploration:
             seat = 0
 
             for single in self.__result_info:
-
                 seat += 1
 
                 if "thumbnail_bytes" in single:
                     thumbnail = single["thumbnail_bytes"]
                     try:
                         thumbnail = Image.open(fp=BytesIO(thumbnail)).convert("RGB")
-                    except (PIL.UnidentifiedImageError):
+                    except PIL.UnidentifiedImageError:
                         thumbnail = Image.new(mode="RGB", size=(200, 200), color=(255, 255, 255))
 
                     thumbnail = thumbnail.resize((int((height - 2 * margin) * thumbnail.width / thumbnail.height), height - 2 * margin))
@@ -210,7 +209,7 @@ class Imgexploration:
                     sin_di = {
                         "title": single.title,  # 标题
                         "thumbnail": single.thumbnail,  # 缩略图url
-                        "url": single.url,
+                        "url": urllib.parse.unquote(single.url),
                         "similarity": single.similarity,
                         "source": "saucenao",
                         "thumbnail_bytes": thumbnail_bytes[i],
@@ -225,71 +224,97 @@ class Imgexploration:
             logger.success(f"saucenao result:{len(resList)}")
             return resList
 
-    async def __google_build_result(self, result_num=3) -> dict:
+    async def __google_build_result(self, result_num=5) -> dict:
         google_header = {
-            "referer": "https://lens.google.com/",
-            "sec-ch-ua": '"Chromium";v="106", "Google Chrome";v="106", "Not;A=Brand";v="99"',
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": '"Windows"',
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
-            "accept-language": "zh-CN,zh;q=0.9",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "zh-CN,zh;q=0.9",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+            "Cookie": self.__google_cookies,
         }
         resList = []
-        google_lens_text = ""
-        google_search_text = ""
         logger.info("google searching...")
         try:
             params = {
-                "hl": "zh-CN",
-                "re": "df",
-                "ep": "gsbubu",
                 "url": self.__imgopsUrl,
             }
             google_lens_text = (await self.client.get(f"https://lens.google.com/uploadbyurl", params=params, headers=google_header, follow_redirects=True, timeout=10)).text
-            f = google_lens_text.rindex(r"https://www.google.com/search?tbs\u003dsbi:")
-            l = google_lens_text.index("]", f)
-            url = "https://www.google.com/search?tbs=sbi:" + google_lens_text[f + 43 : l - 1]
-            google_search_text = (await self.client.get(url, headers=google_header, follow_redirects=True, timeout=10)).text
 
-            google_search_html = etree.HTML(google_search_text)
-            resultDiv = google_search_html.xpath('//*[@id="rso"]/div/div/div//*[contains(text(), "包含匹配图片的页面")]/parent::div/parent::div//div[@lang]')
+            req_tex = re.findall(r"var AF_dataServiceRequests = (.+?); var AF_initDataChunkQueue", google_lens_text)
+            if req_tex:
+                ds1 = re.findall(r"'ds:1' : (.*)}", req_tex[0])
+                if ds1:
+                    ds = ds1[0]
+                    # print(ds)
+                    ds = (
+                        ds.replace("id:", '"id":')
+                        .replace("request:", '"request":')
+                        .replace("'", '"')
+                        .replace("[4,true],null,null,[],null", 'null,null,null,[],"000000"')
+                        .replace("true", "1")
+                        .replace("false", "0")
+                        .replace("Asia/Kuching", "Asia/Hong_Kong")
+                        .replace("[5,6,7,2]", "[5,6,2]")
+                        .replace("[],[null,5],null,[5]", "[null,null],[null,5],null,[5],[]")
+                    )
+                    dic = json.loads(ds)
+                    try:
+                        dic["request"][1][-1].remove(1)
+                    except Exception as e:
+                        pass
+                    dic["request"][-3].append(dic["request"][1])
 
-            # 获取预览图base64
-            nonce = google_search_html.xpath("//script[@nonce]/@nonce")
-            if len(nonce) > 0:
-                nonce = nonce[0]
-            else:
-                return []
-            imgbase64s = google_search_html.xpath(f'//script[@nonce="' + nonce + '"][contains(text(),"(function(){var s=\'data:image")]/text()')
-            base64DIC = {}
-            for imgbase in imgbase64s:
-                result = re.search("data:image/.*;base64,(?P<data>.*)';var ii=(?P<attr>.*);_.*", imgbase, re.DOTALL)
-                data = result.groupdict().get("data").replace("\\x3d", "=")
-                attr = result.groupdict().get("attr")
-                attrs = json.loads(attr.replace("'", '"'))
-                for id in attrs:
-                    base64DIC[id] = data
+            qest = [
+                [
+                    [
+                        dic["id"],
+                        json.dumps(dic["request"]),
+                        None,
+                        "generic",
+                    ],
+                ],
+            ]
+            postDate = {"f.req": json.dumps(qest)}
+            post_headers = {
+                "Accept": "*/*",
+                "Accept-Encoding": "gzip, deflate, br",
+                "Accept-Language": "zh-CN,zh;q=0.9",
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                "Sec-Ch-Ua": '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"',
+                "Referer": "https://lens.google.com/",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
+            }
+            te = await self.client.post(url="https://lens.google.com/_/LensWebStandaloneUi/data/batchexecute?hl=zh-CN", data=postDate, headers=post_headers)
 
-            for singleDiv in resultDiv:
+            res_j = json.loads(te.text.replace(r")]}'", "", 1))
+            search_result = json.loads(res_j[0][2])[1][0][1][8][20][0][0]
+
+            for singleDiv in search_result[:result_num]:
                 try:
-                    thumbnail_base64 = base64DIC[singleDiv.xpath("div//img/@id")[0]] if singleDiv.xpath("div//img/@id")[0] in base64DIC.keys() else ""
                     sin_di = {
-                        "title": singleDiv.xpath("div[1]//h3/text()")[0],
-                        "thumbnail_bytes": base64.b64decode(thumbnail_base64),
-                        "url": singleDiv.xpath("div[1]/div[1]/div/a/@href")[0],
+                        "title": singleDiv[4],
+                        "thumbnail_url": singleDiv[0][0],
+                        "url": singleDiv[2][2][2],
                         "source": "Google",
+                        "domain": singleDiv[1][2],
                     }
-                except (IndexError):
+                except IndexError:
                     continue
                 resList.append(sin_di)
 
+            thumbnail_urls = [single["thumbnail_url"] for single in resList]
+            thumbnail_bytes = await self.ImageBatchDownload(thumbnail_urls, self.client)
+            i = 0
+            for single in resList:
+                single["thumbnail_bytes"] = thumbnail_bytes[i]
+                i += 1
             return resList
+
         except Exception as e:
             logger.error(e)
             with open("Googlelens_error_page.html", "w+", encoding="utf-8") as file:
                 file.write(google_lens_text)
-            with open("GoogleSearch_error_page.html", "w+", encoding="utf-8") as file:
-                file.write(google_search_text)
+
         finally:
             logger.success(f"google result:{len(resList)}")
             return resList
@@ -314,18 +339,15 @@ class Imgexploration:
         result_li = []
         try:
             async with Network(proxies=self.__proxy, timeout=20) as client:
-
                 ascii2d_sh = Ascii2D(client=client, bovw=False)
 
-                # ascii2d_sh_result = await ascii2d_sh.search(url=self.__imgopsUrl)
+                # ascii2d_sh_result = await ascii2d_sh.search(url=self.__pic_url)
 
                 ascii2d_tz = Ascii2D(client=client, bovw=True)
-                # ascii2d_tz_result = await ascii2d_tz.search(url=self.__imgopsUrl)
+                # ascii2d_tz_result = await ascii2d_tz.search(url=self.__pic_url)
 
                 ascii2d_sh_result = await asyncio.create_task(ascii2d_sh.search(url=self.__imgopsUrl))
                 ascii2d_tz_result = await asyncio.create_task(ascii2d_tz.search(url=self.__imgopsUrl))
-
-                
 
                 thumbnail_urls = []
                 for single in ascii2d_tz_result.raw[0:tz_num] + ascii2d_sh_result.raw[0:sh_num]:
@@ -339,7 +361,7 @@ class Imgexploration:
                     sin_di = {
                         "title": single.title,
                         "thumbnail": single.thumbnail,
-                        "url": url,
+                        "url": urllib.parse.unquote(url),
                         "source": "ascii2d",
                     }
                     thumbnail_urls.append(single.thumbnail)
@@ -366,7 +388,6 @@ class Imgexploration:
         try:
             yandexurl = f"https://yandex.com/images/search"
             data = {
-                "family": "yes",
                 "rpt": "imageview",
                 "url": self.__imgopsUrl,
             }
@@ -386,7 +407,7 @@ class Imgexploration:
                     "source": "Yandex",
                     "title": single["title"],  # 标题
                     "thumbnail": "https:" + single["thumb"]["url"],  # 预览图url
-                    "url": single["url"],  # 来源网址
+                    "url": urllib.parse.unquote(single["url"]),  # 来源网址
                     "description": single["description"],  # 描述
                     "domain": single["domain"],  # 来源网站域名
                     "thumbnail_bytes": thumbnail_bytes[i],
@@ -403,7 +424,6 @@ class Imgexploration:
     async def doSearch(self) -> dict:
         await self.__getImgbytes()
         await self.__uploadToImgops()
-
         task_saucenao = asyncio.create_task(self.__saucenao_build_result())
         task_ascii2d = asyncio.create_task(self.__ascii2d_build_result())
         task_google = asyncio.create_task(self.__google_build_result())
@@ -430,11 +450,17 @@ class Imgexploration:
 
 
 if __name__ == "__main__":
-
+    url = "https://p.inari.site/usr/369/63e89daabf5f5.jpg"
+    google_cookies = ""
+    proxy_port=7890
     async def main():
-        async with httpx.AsyncClient(proxies=f"http://127.0.0.1:{7890}") as client:
+        async with httpx.AsyncClient(proxies=f"http://127.0.0.1:{proxy_port}") as client:
             aa = Imgexploration(
-                pic_url="https://p.inari.site/usr/369/63bbf25c3accb.jpg", client=client, proxy=f"http://127.0.0.1:{7890}", saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55"
+                pic_url=url,
+                client=client,
+                proxy=f"http://127.0.0.1:{proxy_port}",
+                saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55",
+                google_cookies=google_cookies,
             )
             await aa.doSearch()
         img = Image.open(BytesIO(aa.getResultDict()["pic"]))
