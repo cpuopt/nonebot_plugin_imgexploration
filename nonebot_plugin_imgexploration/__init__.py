@@ -1,14 +1,16 @@
 import nonebot
 import httpx
 from typing import Union
-from nonebot import on_command
+from nonebot import on_command,require
 from nonebot.log import logger
 from nonebot.typing import T_State
 from nonebot.params import Arg, CommandArg
+from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment, GroupMessageEvent, PrivateMessageEvent
+require("nonebot_plugin_guild_patch")
 from nonebot_plugin_guild_patch import GuildMessageEvent
 from .imgexploration import Imgexploration
-from nonebot.plugin import PluginMetadata
+
 
 __plugin_meta__ = PluginMetadata(name="查找图片出处", description="通过saucenao、ascii2d、Google、Yandx查询图片出处", usage="command:搜图")
 
