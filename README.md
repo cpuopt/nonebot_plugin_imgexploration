@@ -51,13 +51,13 @@ nonebot.load_plugin('nonebot_plugin_guild_patch')
 ### 1.env中的配置
 ```
 #代理端口号(不使用本地代理可缺省，例如：使用软路由透明代理、程序运行在境外)
-proxy_port=xxxx  
+proxy_port=7890  
 
 #saucenao apikey 在https://saucenao.com/user.php?page=search-api注册获取
 saucenao_apikey=xxxxx 
 
 #Google Cookies，在F12开发者控制台寻找google.com的请求并复制cookie字符串
-google_cookies=xxxxx
+google_cookies="google_cookies"
 
 #等待用户回复的超时时间(可选) https://v2.nonebot.dev/docs/api/config#Config-session_expire_timeout
 SESSION_EXPIRE_TIMEOUT=180 
