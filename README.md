@@ -12,10 +12,7 @@ _✨ [Nonebot2](https://github.com/nonebot/nonebot2) 插件，Google、Yandx和�
 **需要能稳定访问Google等网站的代理**  
 ## 一.**安装**
 ### 1.使用nb-cli安装
-依次执行
-```
-nb plugin install nonebot_plugin_guild_patch
-```
+
 ```
 nb plugin install nonebot-plugin-imgexploration
 ```
@@ -37,14 +34,7 @@ https://developer.harmonyos.com/cn/docs/design/des-guides/font-0000001157868583
 ```
 pip install -r requirements.txt
 ```
-go-cqhttp 频道支持适配补丁`nonebot-plugin-guild-patch`  
-```
-pip install nonebot-plugin-guild-patch
-```
-在加载本插件前添加
-```
-nonebot.load_plugin('nonebot_plugin_guild_patch')
-```
+
 </details>
 
 ## 二.**配置**  

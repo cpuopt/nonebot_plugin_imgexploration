@@ -7,8 +7,6 @@ from nonebot.typing import T_State
 from nonebot.params import Arg, CommandArg
 from nonebot.plugin import PluginMetadata
 from nonebot.adapters.onebot.v11 import Bot, Message, MessageSegment, GroupMessageEvent, PrivateMessageEvent
-require("nonebot_plugin_guild_patch")
-from nonebot_plugin_guild_patch import GuildMessageEvent
 from .imgexploration import Imgexploration
 
 
@@ -38,13 +36,13 @@ imgexploration = on_command(cmd="搜图", priority=1, block=True)
 
 
 @imgexploration.handle()
-async def cmd_receive(event: Union[GroupMessageEvent, PrivateMessageEvent, GuildMessageEvent], state: T_State, pic: Message = CommandArg()):
+async def cmd_receive(event: Union[GroupMessageEvent, PrivateMessageEvent], state: T_State, pic: Message = CommandArg()):
     if pic:
         state["Message_pic"] = pic
 
 
 @imgexploration.got("Message_pic", prompt="请发送要搜索的图片")
-async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent, GuildMessageEvent], state: T_State, msgpic: Message = Arg("Message_pic")):
+async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent], state: T_State, msgpic: Message = Arg("Message_pic")):
     for segment in msgpic:
         if segment.type == "image":
             pic_url: str = segment.data["url"]  # 图片链接
@@ -74,7 +72,7 @@ async def get_pic(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent,
 
 
 @imgexploration.got("need_num")
-async def get_num(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent, GuildMessageEvent], state: T_State, nummsg: Message = Arg("need_num")):
+async def get_num(bot: Bot, event: Union[GroupMessageEvent, PrivateMessageEvent], state: T_State, nummsg: Message = Arg("need_num")):
     try:
         args = list(map(int, str(nummsg).split()))
         if args[0] == 0:
