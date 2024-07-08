@@ -35,7 +35,7 @@ setuptools.setup(
     # project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
     # Required
-    version="0.3.2",
+    version="0.4.1",
     # This is a one-line description or tagline of what your project does. This
     # corresponds to the "Summary" metadata field:
     # https://packaging.python.org/specifications/core-metadata/#summary
@@ -100,7 +100,6 @@ setuptools.setup(
         "colorama>=0.4.1",
         "nonebot2 >= 2.0.0rc2",
         "nonebot-adapter-onebot >= 2.1.5",
-        "nonebot-plugin-guild-patch >= 0.2.1",
         "brotli >= 1.0.0",
         "PicImageSearch >= 3.9.0",
         "httpx >= 0.23.0",
