@@ -74,7 +74,12 @@ async def get_pic(
         if segment.type == "image":
             pic_url: str = segment.data["url"]  # 图片链接
             logger.success(f"获取到图片: {pic_url}")
-            async with httpx.AsyncClient(proxies=proxies) as client:
+            async with httpx.AsyncClient(
+                proxies=proxies,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+                },
+            ) as client:
                 search = Imgexploration(
                     pic_url=pic_url,
                     client=client,
@@ -91,10 +96,7 @@ async def get_pic(
             state["result_dict"] = result_dict
             await imgexploration.send(
                 message=Message(
-                    MessageSegment.image(file=result_dict["pic"])
-                    + MessageSegment.text(
-                        "请在180s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6"
-                    ),
+                    MessageSegment.image(file=result_dict["pic"]) + MessageSegment.text("请在180s内发送序号以获得对应结果的链接，一次可以发送多个序号，例如：1 5 6"),
                 ),
                 reply_message=True,
             )
@@ -114,12 +116,7 @@ async def get_num(
     try:
         args = list(map(int, str(nummsg).split()))
         if args[0] == 0:
-            await imgexploration.finish(
-                message=Message(
-                    MessageSegment.reply(event.message_id)
-                    + MessageSegment.text("搜图结束")
-                )
-            )
+            await imgexploration.finish(message=Message(MessageSegment.reply(event.message_id) + MessageSegment.text("搜图结束")))
         msg = MessageSegment.text("")
         res_len = len(state["result_dict"]["info"])
         args = numspilt(str(nummsg), res_len)
@@ -128,9 +125,7 @@ async def get_num(
             msg += MessageSegment.text(f"{no} - {url}\n")
         await bot.send(
             event,
-            message=Message(
-                msg + "你还有机会发送序号以获取链接\n发送非数字消息或0以结束搜图"
-            ),
+            message=Message(msg + "你还有机会发送序号以获取链接\n发送非数字消息或0以结束搜图"),
             reply_message=True,
         )
         await imgexploration.reject()

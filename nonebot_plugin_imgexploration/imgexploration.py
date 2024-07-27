@@ -156,8 +156,10 @@ class Imgexploration:
 
                 if single["title"]:
                     text = single["title"].replace("\n", "")
+                    lw = font.getlength(text)
+                    text = text if lw < 450 else f"{text[:int(len(text)*450/lw)]}..."
                     draw.text(xy=(text_x, vernier + text_ver), text="Title: ", fill=(160, 160, 160), font=font, anchor="la")
-                    draw.text(xy=(text_x + 60, vernier + text_ver), text=f"{text[:20]}{'...' if len(text)>=20 else ''}", fill=(0, 0, 0), font=font, anchor="la")
+                    draw.text(xy=(text_x + 60, vernier + text_ver), text=text, fill=(0, 0, 0), font=font, anchor="la")
                     text_ver = text_ver + font_size + margin / 2
 
                 if ("similarity" in single) and single["similarity"]:  # saucenao
@@ -168,7 +170,9 @@ class Imgexploration:
 
                 if ("description" in single) and single["description"]:
                     text = single["description"]
-                    draw.text(xy=(text_x, vernier + text_ver), text=f"{text[:30]}{'...' if len(text)>=30 else ''}", fill=(0, 0, 0), font=font, anchor="la")
+                    lw = font.getlength(text)
+                    text = text if lw < 520 else f"{text[:int(len(text)*520/lw)]}..."
+                    draw.text(xy=(text_x, vernier + text_ver), text=text, fill=(0, 0, 0), font=font, anchor="la")
                     text_ver = text_ver + font_size + margin / 2
 
                 if ("domain" in single) and single["domain"]:  # Yandex
@@ -179,11 +183,13 @@ class Imgexploration:
 
                 if single["url"]:
                     url = single["url"]
-                    draw.text(xy=(text_x, vernier + text_ver), text=f"{url[:80]}{'......' if len(url)>=80 else ''}", fill=(100, 100, 100), font=font3, anchor="la")
+                    lw = font3.getlength(url)
+                    url = url if lw < 560 else f"{url[:int(len(url)*560/lw)]}..."
+                    draw.text(xy=(text_x, vernier + text_ver), text=url, fill=(100, 100, 100), font=font3, anchor="la")
                 vernier += height
 
             save = BytesIO()
-            img.save(save, format="JPEG", quality=95)
+            img.save(save, format="PNG", quality=100)
             return save.getvalue()
         except Exception as e:
             raise e
@@ -246,17 +252,7 @@ class Imgexploration:
                 if ds1:
                     ds = ds1[0]
                     # print(ds)
-                    ds = (
-                        ds.replace("id:", '"id":')
-                        .replace("request:", '"request":')
-                        .replace("'", '"')
-                        .replace("[4,true],null,null,[],null", 'null,null,null,[],"000000"')
-                        .replace("true", "1")
-                        .replace("false", "0")
-                        .replace("Asia/Kuching", "Asia/Hong_Kong")
-                        .replace("[5,6,7,2]", "[5,6,2]")
-                        .replace("[],[null,5],null,[5]", "[null,null],[null,5],null,[5],[]")
-                    )
+                    ds = ds.replace("id:", '"id":').replace("request:", '"request":').replace("'", '"').replace("[4,true],null,null,[],null", 'null,null,null,[],"000000"').replace("true", "1").replace("false", "0").replace("Asia/Kuching", "Asia/Hong_Kong").replace("[5,6,7,2]", "[5,6,2]").replace("[],[null,5],null,[5]", "[null,null],[null,5],null,[5],[]")
                     dic = json.loads(ds)
                     try:
                         dic["request"][1][-1].remove(1)
@@ -314,6 +310,7 @@ class Imgexploration:
             logger.error(e)
             with open("Googlelens_error_page.html", "w+", encoding="utf-8") as file:
                 file.write(google_lens_text)
+            raise e
 
         finally:
             logger.success(f"google result:{len(resList)}")
@@ -417,6 +414,7 @@ class Imgexploration:
             logger.success(f"yandex result:{len(result_li)}")
             return result_li
         except Exception as e:
+            raise e
             logger.error(e)
         finally:
             return result_li
@@ -429,6 +427,7 @@ class Imgexploration:
         task_google = asyncio.create_task(self.__google_build_result())
         task_yandex = asyncio.create_task(self.__yandex_build_result())
 
+        # self.__result_info = (await task_saucenao) + (await task_ascii2d) + (await task_google) + (await task_yandex)
         self.__result_info = (await task_saucenao) + (await task_ascii2d) + (await task_google) + (await task_yandex)
         result_pic = await self.__draw()
 
@@ -452,14 +451,21 @@ class Imgexploration:
 if __name__ == "__main__":
     url = "https://p.inari.site/usr/369/63e89daabf5f5.jpg"
     google_cookies = ""
-    proxy_port=7890
+    proxy_port = 7890
+
     async def main():
-        async with httpx.AsyncClient(proxies=f"http://127.0.0.1:{proxy_port}") as client:
+        async with httpx.AsyncClient(
+            proxies=f"http://127.0.0.1:{proxy_port}",
+            headers={
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            },
+        ) as client:
+
             aa = Imgexploration(
                 pic_url=url,
                 client=client,
                 proxy=f"http://127.0.0.1:{proxy_port}",
-                saucenao_apikey="c9b7e159baa5ec9e7334e81efdaed6213f9a8d55",
+                saucenao_apikey="",
                 google_cookies=google_cookies,
             )
             await aa.doSearch()
