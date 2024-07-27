@@ -49,8 +49,10 @@ saucenao_apikey=xxxxx
 #Google Cookies，在F12开发者控制台寻找google.com的请求并复制cookie字符串
 google_cookies="google_cookies"
 
-#等待用户回复的超时时间(可选) https://v2.nonebot.dev/docs/api/config#Config-session_expire_timeout
-SESSION_EXPIRE_TIMEOUT=180 
+#等待用户回复的超时时间(可选)
+#注意，nonebot2新版本该配置项格式有变化！请根据nonebot版本参照文档 https://nonebot.dev/docs/api/config#Config-session-expire-timeout
+#SESSION_EXPIRE_TIMEOUT=180
+#SESSION_EXPIRE_TIMEOUT=PT3M 
 ```  
 ## 三.**使用**  
 ### 
