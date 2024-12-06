@@ -75,7 +75,7 @@ async def get_pic(
             pic_url: str = segment.data["url"]  # 图片链接
             logger.success(f"获取到图片: {pic_url}")
             async with httpx.AsyncClient(
-                proxies=proxies,
+                proxy=proxies,
                 headers={
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
                 },

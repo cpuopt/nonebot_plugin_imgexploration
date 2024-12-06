@@ -455,7 +455,7 @@ if __name__ == "__main__":
 
     async def main():
         async with httpx.AsyncClient(
-            proxies=f"http://127.0.0.1:{proxy_port}",
+            proxy=f"http://127.0.0.1:{proxy_port}",
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             },
