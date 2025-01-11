@@ -13,7 +13,7 @@ from nonebot.adapters.onebot.v11 import (
     GroupMessageEvent,
     PrivateMessageEvent,
 )
-from .imgexploration import Imgexploration
+from .imgexploration import Cookies, Imgexploration
 
 
 __plugin_meta__ = PluginMetadata(
@@ -27,12 +27,9 @@ __plugin_meta__ = PluginMetadata(
 )
 
 proxy_port = getattr(nonebot.get_driver().config, "proxy_port", None)
-saucenao_apikey = getattr(
-    nonebot.get_driver().config,
-    "saucenao_apikey",
-    "a778025bd4644780c9edd82970484548786fb583",
-)
-google_cookies = getattr(nonebot.get_driver().config, "google_cookies", "")
+saucenao_apikey = getattr(nonebot.get_driver().config, "saucenao_apikey", "")
+google_cookies_filepath = getattr(nonebot.get_driver().config, "google_cookies_filepath", "")
+
 
 proxies = f"http://127.0.0.1:{proxy_port}" if proxy_port else None
 
@@ -85,7 +82,7 @@ async def get_pic(
                     client=client,
                     proxy=proxies,
                     saucenao_apikey=saucenao_apikey,
-                    google_cookies=google_cookies,
+                    google_cookies=Cookies(google_cookies_filepath),
                 )
                 await imgexploration.send(
                     message=Message(MessageSegment.text("搜索进行中……")),

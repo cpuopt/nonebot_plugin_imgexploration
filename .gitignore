@@ -1,3 +1,5 @@
 build/
 dist/
 nonebot_plugin_imgexploration.egg-info/
+*.html
+*.json

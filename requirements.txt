@@ -1,8 +1,8 @@
-httpx>=0.23.1
-loguru>=0.6.0
-lxml>=4.9.2
-Pillow>=9.3.0
+httpx>=0.25.2
+loguru>=0.7.0
+lxml>=4.9.4
+Pillow>=10.0.1
 nonebot2>=2.0.0rc2
 nonebot-adapter-onebot>=2.1.5
-PicImageSearch>=3.7.4
-brotli>=1.0.0
+PicImageSearch>=3.9.7
+brotli>=1.1.0

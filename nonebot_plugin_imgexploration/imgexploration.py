@@ -1,5 +1,7 @@
 import asyncio
+import base64
 import re
+import traceback
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from PicImageSearch import Ascii2D, Network, SauceNAO
 from lxml import etree
@@ -232,11 +234,11 @@ class Imgexploration:
 
     async def __google_build_result(self, result_num=5) -> dict:
         google_header = {
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
-            "Accept-Encoding": "gzip, deflate, br",
-            "Accept-Language": "zh-CN,zh;q=0.9",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-            "Cookie": self.__google_cookies,
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+            "accept-encoding": "gzip, deflate, br, zstd:gzip, deflate, br, zstd",
+            "accept-language": "zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6:zh-CN,zh-HK;q=0.9,zh;q=0.8,en-US;q=0.7,en;q=0.6",
+            "cache-control": "no-cache:no-cache",
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36:Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
         }
         resList = []
         logger.info("google searching...")
@@ -244,70 +246,44 @@ class Imgexploration:
             params = {
                 "url": self.__imgopsUrl,
             }
-            google_lens_text = (await self.client.get(f"https://lens.google.com/uploadbyurl", params=params, headers=google_header, follow_redirects=True, timeout=10)).text
+            google_lens = await self.client.get(f"https://lens.google.com/uploadbyurl", params=params, headers=google_header, timeout=10, cookies=self.__google_cookies.cookies)
+            self.__google_cookies.update(google_lens.headers)
+            redirect_url = google_lens.headers.get("location")
+            google_header["referer"] = str(google_lens.url)
+            google_lens = await self.client.get(redirect_url, headers=google_header, timeout=10, cookies=self.__google_cookies.cookies)
+            self.__google_cookies.update(google_lens.headers)
+            google_lens_text = google_lens.text
+            main_page = etree.HTML(google_lens_text)
+            elements = main_page.xpath("//span[text()='查看完全匹配的结果']/ancestor::a[1]")
+            if elements:
+                href = "https://www.google.com" + elements[0].get("href")
+                google_lens = await self.client.get(href, headers=google_header, timeout=10, cookies=self.__google_cookies.cookies)
+                full_match_page = etree.HTML(google_lens.text)
+                id_base64_mapping = parseBase64Image(full_match_page)
+                with open("Googlelens_test.html", "w+", encoding="utf-8") as file:
+                    file.write(google_lens.text)
+                res_items = full_match_page.xpath("//div[@id='search']/div/div/div")
+                for item in res_items:
+                    link = item.xpath(".//a")[0].get("href")
+                    img_id = item.xpath(".//a//img")[0].get("id")
+                    title = item.xpath(".//a/div/div[2]/div[1]/text()")[0]
+                    img_base64 = id_base64_mapping[img_id] if img_id in id_base64_mapping.keys() else None
+                    img_bytes = base64.b64decode(img_base64) if img_base64 else None
+                    if img_bytes != None:
+                        sin_di = {
+                            "title": title,
+                            "thumbnail_bytes": img_bytes,
+                            "url": link,
+                            "source": "Google",
+                        }
+                        resList.append(sin_di)
+            else:
+                pass
 
-            req_tex = re.findall(r"var AF_dataServiceRequests = (.+?); var AF_initDataChunkQueue", google_lens_text)
-            if req_tex:
-                ds1 = re.findall(r"'ds:1' : (.*)}", req_tex[0])
-                if ds1:
-                    ds = ds1[0]
-                    # print(ds)
-                    ds = ds.replace("id:", '"id":').replace("request:", '"request":').replace("'", '"').replace("[4,true],null,null,[],null", 'null,null,null,[],"000000"').replace("true", "1").replace("false", "0").replace("Asia/Kuching", "Asia/Hong_Kong").replace("[5,6,7,2]", "[5,6,2]").replace("[],[null,5],null,[5]", "[null,null],[null,5],null,[5],[]")
-                    dic = json.loads(ds)
-                    try:
-                        dic["request"][1][-1].remove(1)
-                    except Exception as e:
-                        pass
-                    dic["request"][-3].append(dic["request"][1])
-
-            qest = [
-                [
-                    [
-                        dic["id"],
-                        json.dumps(dic["request"]),
-                        None,
-                        "generic",
-                    ],
-                ],
-            ]
-            postDate = {"f.req": json.dumps(qest)}
-            post_headers = {
-                "Accept": "*/*",
-                "Accept-Encoding": "gzip, deflate, br",
-                "Accept-Language": "zh-CN,zh;q=0.9",
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
-                "Sec-Ch-Ua": '"Google Chrome";v="113", "Chromium";v="113", "Not-A.Brand";v="24"',
-                "Referer": "https://lens.google.com/",
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36",
-            }
-            te = await self.client.post(url="https://lens.google.com/_/LensWebStandaloneUi/data/batchexecute?hl=zh-CN", data=postDate, headers=post_headers)
-
-            res_j = json.loads(te.text.replace(r")]}'", "", 1))
-            search_result = json.loads(res_j[0][2])[1][0][1][8][20][0][0]
-
-            for singleDiv in search_result[:result_num]:
-                try:
-                    sin_di = {
-                        "title": singleDiv[4],
-                        "thumbnail_url": singleDiv[0][0],
-                        "url": singleDiv[2][2][2],
-                        "source": "Google",
-                        "domain": singleDiv[1][2],
-                    }
-                except IndexError:
-                    continue
-                resList.append(sin_di)
-
-            thumbnail_urls = [single["thumbnail_url"] for single in resList]
-            thumbnail_bytes = await self.ImageBatchDownload(thumbnail_urls, self.client)
-            i = 0
-            for single in resList:
-                single["thumbnail_bytes"] = thumbnail_bytes[i]
-                i += 1
             return resList
 
         except Exception as e:
-            logger.error(e)
+            logger.error(traceback.format_exc())
             with open("Googlelens_error_page.html", "w+", encoding="utf-8") as file:
                 file.write(google_lens_text)
             raise e
@@ -448,14 +424,92 @@ class Imgexploration:
         return self.__picNinfo
 
 
+class Cookies:
+
+    cookies = httpx.Cookies()
+    filepath: str
+    cookies_json = []
+
+    def __init__(self, filepath):
+        self.filepath = filepath
+
+        with open(filepath, "r") as f:
+            self.cookies_json = json.loads(f.read())
+
+        for cookie in self.cookies_json:
+            self.cookies.set(cookie["name"], cookie["value"], cookie["domain"])
+
+    def update(self, response_headers: httpx.Headers):
+        set_cookies = response_headers.get_list("set-cookie")
+
+        if not set_cookies:
+            return self.cookies
+
+        new_cookies = httpx.Cookies()
+        for cookie in self.cookies.jar:
+            new_cookies.set(cookie.name, cookie.value, cookie.domain)
+
+        for cookie_str in set_cookies:
+            cookie_parts = cookie_str.split(";")
+            if not cookie_parts:
+                continue
+
+            name_value = cookie_parts[0].strip().split("=", 1)
+            if len(name_value) != 2:
+                continue
+
+            name, value = name_value
+
+            for part in cookie_parts[1:]:
+                if part.strip().lower().startswith("domain="):
+                    domain = part.split("=", 1)[1].strip()
+                    break
+
+            new_cookies.set(name, value, domain)
+            for cookie in self.cookies_json:
+                if cookie["name"] == name:
+                    cookie = {"domain": domain, "name": name, "value": value}
+
+        self.cookies = new_cookies
+        self.save()
+
+    def save(self):
+        with open(self.filepath, "w", encoding="utf-8") as f:
+            json.dump(self.cookies_json, f, ensure_ascii=False, indent=4)
+
+def parseBase64Image(document: etree.Element) -> dict[str, str]:
+    """从HTML文档中解析id和对应的图片base64
+    """
+    res_dic = {}
+    for script in document.xpath("//script[@nonce]"):
+        func = script.xpath("./text()")
+        func_text: str = func[0] if func and len(func) > 0 else ""
+
+        id_match = re.search(r"\['(.*?)'\]", func_text)
+        id = id_match.group(1) if id_match else None
+
+        base64_match = re.search(r"data:image/jpeg;base64,(.*?)'", func_text)
+        b64 = base64_match.group(1).replace(r"\x3d", "=") if base64_match else None
+
+        if id != None and b64 != None:
+
+            if "','" in id:
+                for dimg in id.split("','"):
+                    res_dic[dimg] = b64
+            else:
+                res_dic[id] = b64
+
+    return res_dic
+
+
 if __name__ == "__main__":
-    url = "https://p.inari.site/usr/369/63e89daabf5f5.jpg"
-    google_cookies = ""
+    url = r"https://p.inari.site/usr/369/67821385a0fe3.jpg"
+    google_cookies = Cookies("googleaCookies.json")
     proxy_port = 7890
 
     async def main():
         async with httpx.AsyncClient(
-            proxy=f"http://127.0.0.1:{proxy_port}",
+            proxies=f"http://127.0.0.1:{proxy_port}",
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             },

@@ -46,8 +46,8 @@ proxy_port=7890
 #saucenao apikey 在https://saucenao.com/user.php?page=search-api注册获取
 saucenao_apikey=xxxxx 
 
-#Google Cookies，在F12开发者控制台寻找google.com的请求并复制cookie字符串
-google_cookies="google_cookies"
+#Google Cookies json文件路径，建议使用Chrome插件Cookie-Editor复制导出json并手动存入文件
+google_cookies_filepath="C:\Users\...\google_cookies.json"
 
 #等待用户回复的超时时间(可选)
 #注意，nonebot2新版本该配置项格式有变化！请根据nonebot版本参照文档 https://nonebot.dev/docs/api/config#Config-session-expire-timeout

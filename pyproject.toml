@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nonebot-plugin-imgexploration"
-version = "0.4.3"
+version = "0.4.4"
 description = "Google、Yandx和基于PicImageSearch的saucenao、ascii2d搜图"
 authors = ["cpufan"]
 readme = "README.md"
@@ -10,7 +10,7 @@ packages = [{include = "nonebot_plugin_imgexploration"}]
 python = "^3.10"
 nonebot2 = "^2.0.0rc2"
 nonebot-adapter-onebot = "^2.1.5"
-brotli = "^1.0.0"
+brotli = "^1.1.0"
 PicImageSearch = "^3.9.0"
 httpx = "^0.23.0"
 lxml = "^4.9.0"
