@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "nonebot_plugin_imgexploration"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.11"
 nonebot2 = "^2.0.0rc2"
 nonebot-adapter-onebot = "^2.1.5"
 brotli = "^1.1.0"
@@ -15,7 +15,7 @@ PicImageSearch = "^3.9.0"
 httpx = "^0.23.0"
 lxml = "^4.9.0"
 loguru = "^0.6.0"
-pillow = "^9.0.0"
+pillow = ">=13.0.0"
 
 [build-system]
 requires = ["poetry-core"]

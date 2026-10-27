@@ -52,7 +52,10 @@ class Imgexploration:
             height = img.height
             if width > 2000 or height > 2000:
                 radius = width // 1000 if width > height else height // 1000
-                img = img.resize((int(width / radius), int(height / radius)))
+                img = img.resize(
+                    (max(1, int(width / radius)), max(1, int(height / radius))),
+                    resample=Image.Resampling.LANCZOS,
+                )
                 res = BytesIO()
                 img.save(res, format="JPEG")
                 self.__pic_bytes = res.getvalue()
@@ -137,7 +140,10 @@ class Imgexploration:
                     except PIL.UnidentifiedImageError:
                         thumbnail = Image.new(mode="RGB", size=(200, 200), color=(255, 255, 255))
 
-                    thumbnail = thumbnail.resize((int((height - 2 * margin) * thumbnail.width / thumbnail.height), height - 2 * margin))
+                    thumbnail = thumbnail.resize(
+                        (max(1, int((height - 2 * margin) * thumbnail.width / thumbnail.height)), height - 2 * margin),
+                        resample=Image.Resampling.LANCZOS,
+                    )
                     if single["source"] == "ascii2d":
                         thumbnail = thumbnail.filter(ImageFilter.GaussianBlur(radius=3))
 
@@ -191,7 +197,7 @@ class Imgexploration:
                 vernier += height
 
             save = BytesIO()
-            img.save(save, format="PNG", quality=100)
+            img.save(save, format="PNG")
             return save.getvalue()
         except Exception as e:
             raise e

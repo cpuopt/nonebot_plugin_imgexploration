@@ -105,7 +105,7 @@ setuptools.setup(
         "httpx >= 0.23.0",
         "lxml >= 4.9.0",
         "loguru >= 0.6.0",
-        "pillow >= 9.0.0"
+        "pillow >= 13.0.0"
     ],
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
@@ -122,7 +122,7 @@ setuptools.setup(
     # do not support Python 2, you can simplify this to '>=3.5' or similar, see
     # https://packaging.python.org/guides/distributing-packages-using-setuptools/#python-requires
     # Optional
-    # python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4',
+    python_requires=">=3.11,<4",
     # If there are data files included in your packages that need to be
     # installed, specify them here.
     #
@@ -157,7 +157,6 @@ setuptools.setup(
         # that you indicate whether you support Python 2, Python 3 or both.
         # These classifiers are *not* checked by 'pip install'. See instead
         # 'python_requires' below.
-        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python",
     ),

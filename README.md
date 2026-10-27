@@ -11,6 +11,9 @@ _✨ [Nonebot2](https://github.com/nonebot/nonebot2) 插件，Google、Yandx和�
 
 **需要能稳定访问Google等网站的代理**  
 ## 一.**安装**
+需要 **Python 3.11 或更新的 Python 3 版本**、**Pillow >= 13.0.0**。
+Pillow 13 已不再支持 Python 3.10；升级已有机器人前请先升级 Python 并重新安装依赖。
+
 ### 1.使用nb-cli安装
 
 ```
@@ -35,7 +38,21 @@ https://developer.harmonyos.com/cn/docs/design/des-guides/font-0000001157868583
 pip install -r requirements.txt
 ```
 
+使用 Poetry 时，请保留仓库中的 `poetry.lock` 并执行 `poetry install`，
+以便复现依赖版本并让 Dependabot 识别实际锁定的 Pillow 版本。
+
 </details>
+
+### 4.图片兼容性测试（开发）
+
+```sh
+poetry install
+poetry run python -m pip install pytest
+poetry run python -W error::DeprecationWarning -m pytest -q
+```
+
+测试不连接搜索服务，也不需要机器人配置或系统 HarmonyOS 字体。
+生产环境仍需按上文安装 HarmonyOS 字体。
 
 ## 二.**配置**  
 ### 1.env中的配置
