@@ -101,9 +101,10 @@ setuptools.setup(
         "nonebot2 >= 2.0.0rc2",
         "nonebot-adapter-onebot >= 2.1.5",
         "brotli >= 1.0.0",
-        "PicImageSearch >= 3.9.0",
-        "httpx >= 0.23.0",
-        "lxml >= 4.9.0",
+        "PicImageSearch >= 3.12.11, <4",
+        "httpx >= 0.28.1, <0.29",
+        "h11 >= 0.16.0, <1",
+        "lxml >= 5.4.0, <6",
         "loguru >= 0.6.0",
         "pillow >= 13.0.0"
     ],

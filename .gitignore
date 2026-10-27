@@ -4,6 +4,7 @@ dist/
 .venv*/
 __pycache__/
 .pytest_cache/
+.dependency-inspection/
 nonebot_plugin_imgexploration.egg-info/
 *.html
 *.json
