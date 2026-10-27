@@ -1,5 +1,9 @@
 build/
 dist/
+.venv/
+.venv*/
+__pycache__/
+.pytest_cache/
 nonebot_plugin_imgexploration.egg-info/
 *.html
 *.json
