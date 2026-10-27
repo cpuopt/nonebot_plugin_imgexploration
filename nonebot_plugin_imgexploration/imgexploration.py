@@ -252,18 +252,21 @@ class Imgexploration:
             params = {
                 "url": self.__imgopsUrl,
             }
-            google_lens = await self.client.get(f"https://lens.google.com/uploadbyurl", params=params, headers=google_header, timeout=10, cookies=self.__google_cookies.cookies)
+            self.client.cookies.update(self.__google_cookies.cookies)
+            google_lens = await self.client.get(f"https://lens.google.com/uploadbyurl", params=params, headers=google_header, timeout=10)
             self.__google_cookies.update(google_lens.headers)
+            self.client.cookies.update(self.__google_cookies.cookies)
             redirect_url = google_lens.headers.get("location")
             google_header["referer"] = str(google_lens.url)
-            google_lens = await self.client.get(redirect_url, headers=google_header, timeout=10, cookies=self.__google_cookies.cookies)
+            google_lens = await self.client.get(redirect_url, headers=google_header, timeout=10)
             self.__google_cookies.update(google_lens.headers)
+            self.client.cookies.update(self.__google_cookies.cookies)
             google_lens_text = google_lens.text
             main_page = etree.HTML(google_lens_text)
             elements = main_page.xpath("//span[text()='查看完全匹配的结果']/ancestor::a[1]")
             if elements:
                 href = "https://www.google.com" + elements[0].get("href")
-                google_lens = await self.client.get(href, headers=google_header, timeout=10, cookies=self.__google_cookies.cookies)
+                google_lens = await self.client.get(href, headers=google_header, timeout=10)
                 full_match_page = etree.HTML(google_lens.text)
                 id_base64_mapping = parseBase64Image(full_match_page)
                 with open("Googlelens_test.html", "w+", encoding="utf-8") as file:
@@ -515,7 +518,7 @@ if __name__ == "__main__":
 
     async def main():
         async with httpx.AsyncClient(
-            proxies=f"http://127.0.0.1:{proxy_port}",
+            proxy=f"http://127.0.0.1:{proxy_port}",
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
             },

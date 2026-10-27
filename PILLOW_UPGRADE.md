@@ -36,12 +36,12 @@
 字体测试使用 Pillow 内置 FreeType 字体；生产环境仍要求原 README 中的 HarmonyOS 字体。
 没有联网执行外部搜图服务，也没有构造或运行堆溢出利用样本。
 
-## 已有的非 Pillow 问题（本次未扩大修改）
+## 原 Pillow 修复时发现的问题（后续已处理）
 
 仓库原本三个依赖入口的其他约束不一致。Poetry 原有 `httpx = "^0.23.0"` 会锁定 HTTPX 0.23.3、PicImageSearch 3.9.0，
 但插件入口已有 `httpx.AsyncClient(proxy=...)`，与该旧版 HTTPX 的构造参数不一致。
-本次图片绘制和插件导入验证通过，不等于外部搜图全链路已验证；如需修复该历史问题，应另行统一 HTTPX/PicImageSearch 约束和代理 API，并进行联网集成测试。
-旧的 lxml 4.x 在 Python 3.13 上也可能缺少可用 wheel；本次完整验证使用 Python 3.11。
+后续 h11 安全修复已统一三个入口的 HTTPX/PicImageSearch/lxml 约束，并更新代理及 Cookie API，详见 `H11_UPGRADE.md`。
+本文件中的 32 项测试是原 Pillow 修复的历史验证结果，不表示外部搜图全链路已联网验证。
 
 ## 备份与回滚
 

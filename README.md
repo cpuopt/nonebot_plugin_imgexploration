@@ -13,6 +13,8 @@ _✨ [Nonebot2](https://github.com/nonebot/nonebot2) 插件，Google、Yandx和�
 ## 一.**安装**
 需要 **Python 3.11 或更新的 Python 3 版本**、**Pillow >= 13.0.0**。
 Pillow 13 已不再支持 Python 3.10；升级已有机器人前请先升级 Python 并重新安装依赖。
+HTTP 依赖使用 HTTPX >=0.28.1,<0.29、PicImageSearch >=3.12.11,<4，
+并要求 h11 >=0.16.0，避免旧 HTTP 依赖链重新引入有漏洞的 h11。
 
 ### 1.使用nb-cli安装
 
